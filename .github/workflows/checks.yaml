@@ -2,7 +2,13 @@ name: Terraform CI Checks
 
 on:
   push:
+    paths:
+      - 'modules/**'
+      - 'apps/**'
   pull_request:
+    paths:
+      - 'modules/**'
+      - 'apps/**'
     branches:
       - main
 
