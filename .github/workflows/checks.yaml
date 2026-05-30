@@ -19,6 +19,10 @@ jobs:
                 MODULES=$(ls -d modules/*/ | sed 's|modules/||g' | sed 's|/||g' | jq -R -s -c 'split("\n")[:-1]')
                 echo "modules=$MODULES" >> $GITHUB_OUTPUT
 
+            - name: Output Modules
+              run: |
+                echo "Modules: ${{ steps.get-modules.outputs.modules }}"
+
     module-checks:
         runs-on: ubuntu-latest
         needs: parse-modules
@@ -56,12 +60,16 @@ jobs:
                 MODULES=$(ls -d apps/*/ | sed 's|apps/||g' | sed 's|/||g' | jq -R -s -c 'split("\n")[:-1]')
                 echo "modules=$MODULES" >> $GITHUB_OUTPUT
 
+            - name: Output Modules
+              run: |
+                echo "Modules: ${{ steps.get-apps.outputs.modules }}"
+
     app-checks:
         runs-on: ubuntu-latest
         needs: parse-apps
         strategy:
             matrix:
-                module: ${{ fromJson(needs.parse-apps.outputs.modules) }}
+                module: ${{ needs.parse-apps.outputs.modules }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
