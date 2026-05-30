@@ -104,80 +104,80 @@ jobs:
             - name: Terraform Validate
               run: terraform validate -no-color
 
-    previous-tag:
-        runs-on: ubuntu-latest
-        if: github.event_name == 'push'
-        outputs:
-            previous_tag: ${{ steps.get-previous-tag.outputs.previous_tag }}
-        needs: [module-checks, app-checks]
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
+    # previous-tag:
+    #     runs-on: ubuntu-latest
+    #     if: github.event_name == 'push'
+    #     outputs:
+    #         previous_tag: ${{ steps.get-previous-tag.outputs.previous_tag }}
+    #     needs: [module-checks, app-checks]
+    #     steps:
+    #         - name: Checkout code
+    #           uses: actions/checkout@v6
 
-            - name: Get previous tag
-              id: get-previous-tag
-              run: |
-                git fetch --tags
-                PREVIOUS_TAG=$(git describe --tags --abbrev=0)
-                echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+    #         - name: Get previous tag
+    #           id: get-previous-tag
+    #           run: |
+    #             git fetch --tags
+    #             PREVIOUS_TAG=$(git describe --tags --abbrev=0)
+    #             echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
-    create-tags:
-        runs-on: ubuntu-latest
-        if: github.event_name == 'push'
-        outputs:
-            new_tag: ${{ steps.create-tag.outputs.new_tag }}
-        needs: [module-checks, app-checks]
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
+    # create-tags:
+    #     runs-on: ubuntu-latest
+    #     if: github.event_name == 'push'
+    #     outputs:
+    #         new_tag: ${{ steps.create-tag.outputs.new_tag }}
+    #     needs: [module-checks, app-checks]
+    #     steps:
+    #         - name: Checkout code
+    #           uses: actions/checkout@v6
 
-            - name: Create tags for modules and apps
-              id: create-tag
-              run: |
-                TAG="$(date +'%y.%m.%d')"
+    #         - name: Create tags for modules and apps
+    #           id: create-tag
+    #           run: |
+    #             TAG="$(date +'%y.%m.%d')"
 
-                git config --global user.name "github-actions"
-                git config --global user.email "actions@github.com"
+    #             git config --global user.name "github-actions"
+    #             git config --global user.email "actions@github.com"
 
-                git tag $TAG
-                git push origin $TAG
+    #             git tag $TAG
+    #             git push origin $TAG
 
-    generate-docs:
-        runs-on: ubuntu-latest
-        needs: [module-checks, app-checks, create-tags, previous-tag]
-        outputs:
-            change_log: ${{ steps.generate-docs.outputs.change_log }}
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
+    # generate-docs:
+    #     runs-on: ubuntu-latest
+    #     needs: [module-checks, app-checks, create-tags, previous-tag]
+    #     outputs:
+    #         change_log: ${{ steps.generate-docs.outputs.change_log }}
+    #     steps:
+    #         - name: Checkout code
+    #           uses: actions/checkout@v6
 
-            - name: Generate documentation
-              id: generate-docs
-              run: |
-                last_tag=${{ needs.previous-tag.outputs.previous_tag }}
-                new_tag=${{ needs.create-tags.outputs.new_tag }}
-                echo "Generating documentation for changes between $last_tag and $new_tag"
+    #         - name: Generate documentation
+    #           id: generate-docs
+    #           run: |
+    #             last_tag=${{ needs.previous-tag.outputs.previous_tag }}
+    #             new_tag=${{ needs.create-tags.outputs.new_tag }}
+    #             echo "Generating documentation for changes between $last_tag and $new_tag"
 
-                echo "" >> CHANGELOG.md
+    #             echo "" >> CHANGELOG.md
 
-                git log $last_tag..$new_tag --pretty=format:"- %s (%h)" >> CHANGELOG.md
+    #             git log $last_tag..$new_tag --pretty=format:"- %s (%h)" >> CHANGELOG.md
 
-                echo "Documentation generated and added to CHANGELOG.md"
+    #             echo "Documentation generated and added to CHANGELOG.md"
 
-                echo "change_log=$(cat CHANGELOG.md)" >> $GITHUB_OUTPUT
+    #             echo "change_log=$(cat CHANGELOG.md)" >> $GITHUB_OUTPUT
 
-    release:
-        runs-on: ubuntu-latest
-        needs: [generate-docs, create-tags]
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
+    # release:
+    #     runs-on: ubuntu-latest
+    #     needs: [generate-docs, create-tags]
+    #     steps:
+    #         - name: Checkout code
+    #           uses: actions/checkout@v6
 
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v1
-              with:
-                tag_name: ${{ needs.create-tags.outputs.new_tag }}
-                release_name: Release ${{ needs.create-tags.outputs.new_tag }}
-                body: ${{ needs.generate-docs.outputs.change_log }}
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #         - name: Create GitHub Release
+    #           uses: softprops/action-gh-release@v1
+    #           with:
+    #             tag_name: ${{ needs.create-tags.outputs.new_tag }}
+    #             release_name: Release ${{ needs.create-tags.outputs.new_tag }}
+    #             body: ${{ needs.generate-docs.outputs.change_log }}
+    #           env:
+    #             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
