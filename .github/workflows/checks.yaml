@@ -33,7 +33,7 @@ jobs:
                 module: ${{ fromJson(needs.parse-modules.outputs.modules) }}
         defaults:
           run:
-            working-directory: ${{ matrix.module }}
+            working-directory: 'modules/${{ matrix.module }}'
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
@@ -79,7 +79,7 @@ jobs:
                 apps: ${{ fromJson(needs.parse-apps.outputs.apps) }}
         defaults:
           run:
-            working-directory: ${{ matrix.apps }}
+            working-directory: 'apps/${{ matrix.apps }}'
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
