@@ -8,6 +8,8 @@ on:
 
 jobs:
     parse-modules:
+        outputs:
+            modules: ${{ steps.get-modules.outputs.modules }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -49,6 +51,8 @@ jobs:
 
     
     parse-apps:
+        outputs:
+            modules: ${{ steps.get-apps.outputs.modules }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
