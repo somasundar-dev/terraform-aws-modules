@@ -52,7 +52,7 @@ jobs:
     
     parse-apps:
         outputs:
-            modules: ${{ steps.get-apps.outputs.modules }}
+            apps: ${{ steps.get-apps.outputs.apps }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -61,19 +61,19 @@ jobs:
             - name: Get Terraform apps folders
               id: get-apps
               run: |
-                MODULES=$(ls -d apps/*/ | sed 's|apps/||g' | sed 's|/||g' | jq -R -s -c 'split("\n")[:-1]')
-                echo "modules=$MODULES" >> $GITHUB_OUTPUT
+                APPS=$(ls -d apps/*/ | sed 's|apps/||g' | sed 's|/||g' | jq -R -s -c 'split("\n")[:-1]')
+                echo "apps=$APPS" >> $GITHUB_OUTPUT
 
-            - name: Output Modules
+            - name: Output Apps
               run: |
-                echo "Modules: ${{ steps.get-apps.outputs.modules }}"
+                echo "Apps: ${{ steps.get-apps.outputs.apps }}"
 
     app-checks:
         runs-on: ubuntu-latest
         needs: parse-apps
         strategy:
             matrix:
-                module: ${{ needs.parse-apps.outputs.modules }}
+                module: ${{ needs.parse-apps.outputs.apps }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
