@@ -2,9 +2,6 @@ name: Terraform CI Checks
 
 on:
   push:
-    paths:
-      - 'modules/**'
-      - 'apps/**'
     branches:
       - main
   pull_request:
@@ -120,7 +117,8 @@ jobs:
             - name: Get previous tag
               id: get-previous-tag
               run: |
-                PREVIOUS_TAG=$(git describe --tags --abrev=0)
+                git fetch --tags
+                PREVIOUS_TAG=$(git describe --tags --abbrev=0)
                 echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
     create-tags:
@@ -136,7 +134,7 @@ jobs:
             - name: Create tags for modules and apps
               id: create-tag
               run: |
-                TAG="v$(date +'%Y.%m%d.%H%M%S')"
+                TAG="$(date +'%Y.%m%d.%H%M')"
 
                 git config --global user.name "github-actions"
                 git config --global user.email "actions@github.com"
