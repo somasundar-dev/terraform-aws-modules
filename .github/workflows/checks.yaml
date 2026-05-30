@@ -31,6 +31,9 @@ jobs:
         strategy:
             matrix:
                 module: ${{ fromJson(needs.parse-modules.outputs.modules) }}
+        defaults:
+          run:
+            working-directory: ${{ matrix.module }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
@@ -73,7 +76,10 @@ jobs:
         needs: parse-apps
         strategy:
             matrix:
-                module: ${{ needs.parse-apps.outputs.apps }}
+                apps: ${{ fromJson(needs.parse-apps.outputs.apps) }}
+        defaults:
+          run:
+            working-directory: ${{ matrix.apps }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
