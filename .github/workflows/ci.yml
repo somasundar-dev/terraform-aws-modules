@@ -1,0 +1,126 @@
+name: Terraform Init, Fmt, Validate Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+    parse-modules:
+        outputs:
+            modules: ${{ steps.get-modules.outputs.modules }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Get Terraform Modules folders
+              id: get-modules
+              run: |
+                MODULES=$(ls -d modules/*/ | sed 's|modules/||g' | sed 's|/||g' | jq -R -s -c 'split("\n")[:-1]')
+                echo "modules=$MODULES" >> $GITHUB_OUTPUT
+
+            - name: Output Modules
+              run: |
+                echo "Modules: ${{ steps.get-modules.outputs.modules }}"
+
+    module-checks:
+        runs-on: ubuntu-latest
+        needs: parse-modules
+        outputs:
+          modules-is-success: ${{ steps.success.outputs.modules-is-success }}
+        strategy:
+            matrix:
+                module: ${{ fromJson(needs.parse-modules.outputs.modules) }}
+        defaults:
+          run:
+            working-directory: 'modules/${{ matrix.module }}'
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Set up Terraform
+              uses: hashicorp/setup-terraform@v4
+              with:
+                terraform_version: "1.14.6"
+
+            - name: Terraform Format Check
+              run: terraform fmt -check -recursive
+
+            - name: Terraform Init
+              run: terraform init -backend=false
+
+            - name: Terraform Validate
+              run: terraform validate -no-color
+
+            - name: Update Success
+              id: success
+              run: |
+                echo "modules-is-success=true" >> $GITHUB_OUTPUT
+
+    
+    parse-apps:
+        outputs:
+            apps: ${{ steps.get-apps.outputs.apps }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Get Terraform apps folders
+              id: get-apps
+              run: |
+                APPS=$(ls -d apps/*/ | sed 's|apps/||g' | sed 's|/||g' | jq -R -s -c 'split("\n")[:-1]')
+                echo "apps=$APPS" >> $GITHUB_OUTPUT
+
+            - name: Output Apps
+              run: |
+                echo "Apps: ${{ steps.get-apps.outputs.apps }}"
+
+    app-checks:
+        runs-on: ubuntu-latest
+        needs: parse-apps
+        outputs:
+          apps-is-succes: ${{ steps.success.outputs.apps-is-success }}
+        strategy:
+            matrix:
+                apps: ${{ fromJson(needs.parse-apps.outputs.apps) }}
+        defaults:
+          run:
+            working-directory: 'apps/${{ matrix.apps }}'
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Set up Terraform
+              uses: hashicorp/setup-terraform@v4
+              with:
+                terraform_version: "1.14.6"
+
+            - name: Terraform Format Check
+              run: terraform fmt -check -recursive
+              
+            - name: Terraform Init
+              run: terraform init -backend=false
+
+            - name: Terraform Validate
+              run: terraform validate -no-color
+
+            - name: Update Success
+              id: success
+              run: |
+                echo "apps-is-success=true" >> $GITHUB_OUTPUT
+
+    validate-checks:
+        runs-on: ubuntu-latest
+        needs: [module-checks, app-checks]
+        steps:
+          - name: Check if both module & app checks are success
+            if: ${{ needs.app-checks.outputs.apps-is-succes == true && needs.module-checks.outputs.modules-is-success == true }}
+            run: |
+              echo "All Checks Success"
+              
