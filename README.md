@@ -2,4 +2,4 @@
 
 Reusable Terraform modules for AWS serverless deployments.
 
-[![Terraform CI Checks](https://github.com/somasundar-dev/terraform-aws-modules/actions/workflows/validate-ci.yaml/badge.svg)](https://github.com/somasundar-dev/terraform-aws-modules/actions/workflows/validate-ci.yaml)
+[![Terraform Init, Fmt, Validate Checks](https://github.com/somasundar-dev/terraform-aws-modules/actions/workflows/ci.yml/badge.svg)](https://github.com/somasundar-dev/terraform-aws-modules/actions/workflows/ci.yml)
